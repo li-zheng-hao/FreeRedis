@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using FreeRedis.Diagnostics;
 
 namespace FreeRedis
 {
@@ -20,6 +21,7 @@ namespace FreeRedis
         protected RedisClient(BaseAdapter adapter)
         {
             Adapter = adapter;
+            UseDiagnostic();
         }
 
         /// <summary>
@@ -29,8 +31,9 @@ namespace FreeRedis
         {
             Adapter = new PoolingAdapter(this, connectionString, slaveConnectionStrings);
             Prefix = connectionString.Prefix;
+            UseDiagnostic();
         }
-
+        
         /// <summary>
         /// Cluster RedisClient
         /// </summary>
@@ -38,6 +41,7 @@ namespace FreeRedis
         {
             Adapter = new ClusterAdapter(this, clusterConnectionStrings);
             Prefix = clusterConnectionStrings[0].Prefix;
+            UseDiagnostic();
         }
         /// <summary>
         /// Norman RedisClient
@@ -46,6 +50,7 @@ namespace FreeRedis
         {
             Adapter = new NormanAdapter(this, connectionStrings, redirectRule);
             Prefix = connectionStrings[0].Prefix;
+            UseDiagnostic();
         }
 
         /// <summary>
@@ -55,6 +60,7 @@ namespace FreeRedis
         {
             Adapter = new SentinelAdapter(this, sentinelConnectionString, sentinels, rw_splitting);
             Prefix = sentinelConnectionString.Prefix;
+            UseDiagnostic();
         }
 
         /// <summary>
@@ -67,6 +73,14 @@ namespace FreeRedis
             Adapter = new SingleInsideAdapter(topOwner ?? this, this, host, ssl, 
                 connectTimeout, receiveTimeout, sendTimeout, connected, disconnected);
             Prefix = topOwner.Prefix;
+            UseDiagnostic();
+        }
+
+        private void UseDiagnostic()
+        {
+            #if NETCOREAPP
+                this.UseDiagnosticListener();
+            #endif
         }
 
         ~RedisClient() => this.Dispose();
